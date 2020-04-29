@@ -1,100 +1,134 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
+    <title>Laravel</title>
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Nunito', sans-serif;
-                font-weight: 200;
-                height: 100vh;
-                margin: 0;
-            }
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+</head>
+<body>
+@if (Route::has('login'))
+    <div class="top-right links">
+        @auth
+            <a href="{{ url('/home') }}">Home</a>
+        @else
+            <a href="{{ route('login') }}">Login</a>
 
-            .full-height {
-                height: 100vh;
-            }
-
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
-
-            .position-ref {
-                position: relative;
-            }
-
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
-
-            .content {
-                text-align: center;
-            }
-
-            .title {
-                font-size: 84px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
-                        @endif
-                    @endauth
-                </div>
+            @if (Route::has('register'))
+                <a href="{{ route('register') }}">Register</a>
             @endif
+        @endauth
+    </div>
+@endif
 
-            <div class="content">
-                <div class="title m-b-md">
-                    Laravel
+<div class="content" id="crop-demo">
+    <section class="container">
+        <div class="row text-center">
+            <h2 class="col-md-12">Crop demo</h2>
+            <div class="col-md-6 mx-auto">
+                <div class="tools" v-if="cropElementIs('cats1') && crop_mode">
+                    <button type="button" class="btn btn-danger" @click="cancelCrop">Cancel</button>
+                    <button type="button" class="btn btn-primary" @click="saveCrop">Crop image</button>
                 </div>
-
-                <div class="links">
-                    <a href="https://laravel.com/docs">Docs</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://blog.laravel.com">Blog</a>
-                    <a href="https://nova.laravel.com">Nova</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://vapor.laravel.com">Vapor</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
+                <img src="{{ asset('images/cats1.jpg') }}" alt="catssss" @click="toggleCrop" id="cats1">
+            </div>
+            <div class="col-md-6 mx-auto">
+                <div class="tools" v-if="cropElementIs('cats2') && crop_mode">
+                    <button type="button" class="btn btn-danger" @click="cancelCrop">Cancel</button>
+                    <button type="button" class="btn btn-primary" @click="saveCrop">Crop image</button>
                 </div>
+                <img src="{{ asset('images/cats2.jpg') }}" alt="catssss" @click="toggleCrop" id="cats2">
             </div>
         </div>
-    </body>
+    </section>
+</div>
+
+<script src="{{ asset('js/app.js') }}"></script>
+<script>
+    imgUpdateRoute = "";
+    let cropDemo = new Vue({
+        el: '#crop-demo',
+        data: {
+            img_el: null, // image being cropped
+            crop_el: null, // croppie object
+            crop_mode: false // if something is being cropped
+        },
+        methods: {
+            /**
+             * toggle cropping of the clicked image
+             *
+             * @param event
+             */
+            toggleCrop(event) {
+                // crop only one at a time
+                if (this.crop_mode) {
+                    return;
+                }
+
+                this.img_el = $(`#${event.target.id}`);
+
+                // initialize the image to be cropped
+                this.crop_el = this.img_el.croppie({
+                    viewport: {width: 300, height: 300},
+                    boundary: {width: 400, height: 400},
+                    showZoomer: true,
+                    enableResize: true,
+                    enableOrientation: true,
+                });
+
+                this.crop_mode = true;
+
+            },
+
+            /**
+             * Check image being cropped
+             *
+             * @param id
+             * @returns {boolean}
+             */
+            cropElementIs(id) {
+                return this.img_el ? (this.img_el.attr('id') === id) : false;
+            },
+
+            /**
+             * Cancel cropping
+             */
+            cancelCrop() {
+                this.crop_el.croppie('destroy');
+                this.crop_mode = false;
+            },
+
+            /**
+             * Save crop both on the client and server side
+             */
+            saveCrop() {
+                // get cropped image as blob
+                let result = this.crop_el.croppie('result', 'blob');
+
+                result.then(function (blob) {
+                    this.updateImageElement(blob);
+                }.bind(this));
+
+                this.crop_el.croppie('destroy');
+                this.crop_mode = false;
+            },
+
+            /**
+             * Update image on the client side
+             *
+             * @param blob
+             */
+            updateImageElement(blob) {
+                let src = URL.createObjectURL(blob);
+                this.img_el.attr('src', src);
+            },
+        }
+    });
+</script>
+</body>
 </html>
