@@ -4,58 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Image;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class ImagesController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
+    public function index(Image $images)
     {
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
+        return view('welcome', ['images' => $images->all()]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
-        Image::createOrFail($request->all());
+        Image::create($request->all());
+
+        return back();
     }
 
     /**
      * Display the specified resource.
      *
      * @param  \App\Image  $images
-     * @return \Illuminate\Http\Response
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
-    public function show(Image $images)
+    public function show(Image $image)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Image  $images
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Image $images)
-    {
-        //
+        /*
+         * add your policy check here
+         * Like only admins and the owner of the image can view
+         * That way no one else can access the images */
+        return Response::file($image->file);
     }
 
     /**
@@ -63,21 +51,17 @@ class ImagesController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Image  $images
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Image $images)
+    public function update(Request $request, Image $image)
     {
-        //
-    }
+        $image->update($request->all());
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Image  $images
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Image $images)
-    {
-        //
+        return response()->json(
+            [
+                'message' => 'Image updated',
+                'file' => $request->file
+            ]
+        );
     }
 }

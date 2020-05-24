@@ -2,14 +2,23 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
     <title>Laravel</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,600"
+        rel="stylesheet"
+    >
 
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/app.css') }}"
+    >
 </head>
 <body>
 @if (Route::has('login'))
@@ -26,24 +35,92 @@
     </div>
 @endif
 
-<div class="content" id="crop-demo">
+<div
+    class="content"
+    id="crop-demo"
+>
     <section class="container">
         <div class="row text-center">
             <h2 class="col-md-12">Crop demo</h2>
-            <div class="col-md-6 mx-auto">
-                <div class="tools" v-if="cropElementIs('cats1') && crop_mode">
-                    <button type="button" class="btn btn-danger" @click="cancelCrop">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="saveCrop">Crop image</button>
+            @forelse($images as $image)
+                <div class="col-md-12">
+                    <div
+                        class="tools"
+                        v-if="cropElementIs('image{{ $image->id }}') && crop_mode"
+                    >
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            @click="cancelCrop"
+                        >Cancel
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            @click="saveCrop"
+                        >Crop image
+                        </button>
+                    </div>
+                    <img
+                        src="{{ route('image.show', ['image' => $image->id]) }}"
+                        data-update-url="{{ route('image.update', ['image' => $image->id]) }}"
+                        alt="image"
+                        @click="toggleCrop"
+                        id="image{{ $image->id }}"
+                    >
                 </div>
-                <img src="{{ asset('images/cats1.jpg') }}" alt="catssss" @click="toggleCrop" id="cats1">
-            </div>
-            <div class="col-md-6 mx-auto">
-                <div class="tools" v-if="cropElementIs('cats2') && crop_mode">
-                    <button type="button" class="btn btn-danger" @click="cancelCrop">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="saveCrop">Crop image</button>
+            @empty
+                <div class="col-md-6 mx-auto">
+                    <div
+                        class="tools"
+                        v-if="cropElementIs('cats1') && crop_mode"
+                    >
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            @click="cancelCrop"
+                        >Cancel
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            @click="saveCrop"
+                        >Crop image
+                        </button>
+                    </div>
+                    <img
+                        src="{{ asset('images/cats1.jpg') }}"
+                        alt="catssss"
+                        @click="toggleCrop"
+                        id="cats1"
+                    >
                 </div>
-                <img src="{{ asset('images/cats2.jpg') }}" alt="catssss" @click="toggleCrop" id="cats2">
-            </div>
+                <div class="col-md-6 mx-auto">
+                    <div
+                        class="tools"
+                        v-if="cropElementIs('cats2') && crop_mode"
+                    >
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            @click="cancelCrop"
+                        >Cancel
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            @click="saveCrop"
+                        >Crop image
+                        </button>
+                    </div>
+                    <img
+                        src="{{ asset('images/cats2.jpg') }}"
+                        alt="catssss"
+                        @click="toggleCrop"
+                        id="cats2"
+                    >
+                </div>
+            @endforelse
         </div>
     </section>
     <hr>
@@ -51,10 +128,18 @@
         <div class="row text-center">
             <h2 class="col-md-12">Upload your own</h2>
             <div class="col-md-6 mx-auto">
-                <form action="{{ route('image.store') }}" method="post" enctype="multipart/form-data">
+                <form
+                    action="{{ route('image.store') }}"
+                    method="post"
+                    enctype="multipart/form-data"
+                >
                     @csrf
                     <div class="form-group">
-                        <input type="file" name="file" class="form-control">
+                        <input
+                            type="file"
+                            name="file"
+                            class="form-control"
+                        >
                     </div>
 
                     <button type="submit">Upload</button>
@@ -66,7 +151,6 @@
 
 <script src="{{ asset('js/app.js') }}"></script>
 <script>
-    imgUpdateRoute = "";
     let cropDemo = new Vue({
         el: '#crop-demo',
         data: {
@@ -160,9 +244,9 @@
                     type: 'image/png'
                 });
 
-                formData.append(this.img_el.attr('id'), imgFile);
+                formData.append('file', imgFile);
 
-                axios.post(imgUpdateRoute, formData).then(response => {
+                axios.post(this.img_el.data('updateUrl'), formData).then(response => {
                     alert(response.data.message);
                 }).catch(err => {
                     alert(err.response.data.message);

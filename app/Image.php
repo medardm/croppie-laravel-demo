@@ -25,4 +25,9 @@ class Image extends Model
         );
         $this->attributes['file'] = $path;
     }
+
+    public function getFileAttribute($value)
+    {
+        return storage_path('app/' . $value);
+    }
 }
