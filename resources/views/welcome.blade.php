@@ -112,6 +112,7 @@
 
                 result.then(function (blob) {
                     this.updateImageElement(blob);
+                    this.updateImageOnServer(blob);
                 }.bind(this));
 
                 this.crop_el.croppie('destroy');
@@ -127,6 +128,30 @@
                 let src = URL.createObjectURL(blob);
                 this.img_el.attr('src', src);
             },
+
+            /**
+             * Update image on the server side
+             *
+             * @param blob
+             */
+            updateImageOnServer(blob) {
+                let formData = new FormData();
+
+                formData.set('_method', 'PUT');
+
+                // create image file and append to form data
+                let imgFile = new File([blob], "image.png", {
+                    type: 'image/png'
+                });
+
+                formData.append(this.img_el.attr('id'), imgFile);
+
+                axios.post(imgUpdateRoute, formData).then(response => {
+                    alert(response.data.message);
+                }).catch(err => {
+                    alert(err.response.data.message);
+                });
+            }
         }
     });
 </script>
