@@ -46,6 +46,22 @@
             </div>
         </div>
     </section>
+    <hr>
+    <section class="container">
+        <div class="row text-center">
+            <h2 class="col-md-12">Upload your own</h2>
+            <div class="col-md-6 mx-auto">
+                <form action="{{ route('image.store') }}" method="post" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <input type="file" name="file" class="form-control">
+                    </div>
+
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+    </section>
 </div>
 
 <script src="{{ asset('js/app.js') }}"></script>
